@@ -11,17 +11,18 @@ interface Open5eService {
 
     @GET("monsters/")
     suspend fun getMonsters(
-        @Query("challenge_rating") cr: String
+        @Query("page") page: Int = 1
     ): Response<ApiResponse<Monster>>
 
     @GET("spells/")
     suspend fun getSpells(
-        @Query("level") level: String
+        @Query("page") page: Int = 1
     ): Response<ApiResponse<Spell>>
 
     @GET("magicitems/")
     suspend fun getItems(
-        @Query("rarity") rarity: String,
-        @Query("type") type: String
+        @Query("rarity") rarity: String = "",
+        @Query("type") type: String = "",
+        @Query("page") page: Int = 1
     ): Response<ApiResponse<MagicItem>>
 }
