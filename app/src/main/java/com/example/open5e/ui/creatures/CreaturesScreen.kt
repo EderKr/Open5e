@@ -20,8 +20,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.open5e.MainViewModel
 import com.example.open5e.models.Monster
+import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
 fun CreaturesScreen(viewModel: MainViewModel = viewModel()) {
@@ -49,9 +49,9 @@ fun CreaturesScreen(viewModel: MainViewModel = viewModel()) {
 
         Button(
             onClick = {
-                val cr = crFilter.toDoubleOrNull() ?: 0.0
+                val cr = crFilter.trim()
                 viewModel.fetchMonsters(cr) { result, error ->
-                    creatures = result
+                creatures = result
                     errorMessage = error
                 }
             },

@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    public const val DEFAULT_BASE_URL = "https://api.open5e.com/"
+    private const val DEFAULT_BASE_URL = "https://api.open5e.com/"
 
     @Volatile
     var retrofit: Retrofit = createRetrofit(DEFAULT_BASE_URL)

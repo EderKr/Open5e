@@ -3,7 +3,7 @@ package com.example.open5e.models
 data class Monster(
     val name: String,
     val type: String,
-    val challenge_rating: Double,
+    val challenge_rating: String,
     val hit_points: Int,
     val armor_class: Int,
     val abilities: Map<String, Int>
