@@ -10,13 +10,11 @@ class AccountViewModel : ViewModel() {
     }
 
     fun updateAccount(username: String, email: String, phone: String, currentPassword: String, newPassword: String) {
-        // Lógica para validar e atualizar a conta (simulado aqui)
-        if (currentPassword == "1234") { // Exemplo: senha fictícia
+        if (currentPassword == "1234") {
             account.username = username
             account.email = email
             account.phone = phone
             if (newPassword.isNotEmpty()) {
-                // Atualiza a senha (simulado)
             }
         }
     }

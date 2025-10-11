@@ -1,8 +1,22 @@
 package com.example.open5e.ui.login
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -10,8 +24,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit, // Função para navegar após login bem-sucedido
-    onSignUp: () -> Unit // Função para navegar para a tela de cadastro
+    onLoginSuccess: () -> Unit,
+    onSignUp: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -24,12 +38,10 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título
         Text(text = "Log in", style = MaterialTheme.typography.headlineLarge)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Campo de email
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -40,7 +52,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Campo de senha
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -61,14 +72,12 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botão de login
         Button(
             onClick = {
-                // Validação dos campos
                 if (email.isNotEmpty() && password.isNotEmpty()) {
-                    onLoginSuccess() // Login bem-sucedido
+                    onLoginSuccess()
                 } else {
-                    showError = true // Mostrar mensagem de erro
+                    showError = true
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -77,8 +86,6 @@ fun LoginScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        // Link para tela de cadastro
         TextButton(onClick = { onSignUp() }) {
             Text("Don’t have an account? Sign up")
         }
