@@ -6,6 +6,8 @@ import com.example.open5e.models.Spell
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
+import retrofit2.http.Path
+
 
 interface Open5eService {
 
@@ -25,4 +27,13 @@ interface Open5eService {
         @Query("type") type: String = "",
         @Query("page") page: Int = 1
     ): Response<ApiResponse<MagicItem>>
+
+    @GET("monsters/{slug}/")
+    suspend fun getMonsterDetail(@Path("slug") slug: String): Response<Monster>
+
+    @GET("spells/{slug}/")
+    suspend fun getSpellDetail(@Path("slug") slug: String): Response<Spell>
+
+    @GET("magicitems/{slug}/")
+    suspend fun getItemDetail(@Path("slug") slug: String): Response<MagicItem>
 }

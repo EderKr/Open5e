@@ -1,5 +1,6 @@
 package com.example.open5e.ui.spells
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,12 +32,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.open5e.MainViewModel
 import com.example.open5e.models.Spell
-import com.example.open5e.viewmodels.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpellsScreen(viewModel: MainViewModel = viewModel()) {
+fun SpellsScreen(
+    navController: NavController,
+    viewModel: MainViewModel = viewModel()
+) {
     var spells by remember { mutableStateOf<List<Spell>>(emptyList()) }
     var selectedLevel by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -66,9 +71,13 @@ fun SpellsScreen(viewModel: MainViewModel = viewModel()) {
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Spell List", style = MaterialTheme.typography.headlineMedium)
+
         Spacer(Modifier.height(8.dp))
 
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
             TextField(
                 value = selectedLevel,
                 onValueChange = {},
@@ -77,12 +86,13 @@ fun SpellsScreen(viewModel: MainViewModel = viewModel()) {
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth()
             )
+
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                levels.forEach {
+                levels.forEach { level ->
                     DropdownMenuItem(
-                        text = { Text(it) },
+                        text = { Text(level) },
                         onClick = {
-                            selectedLevel = it
+                            selectedLevel = level
                             expanded = false
                         }
                     )
@@ -99,13 +109,20 @@ fun SpellsScreen(viewModel: MainViewModel = viewModel()) {
         Spacer(Modifier.height(8.dp))
 
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyColumn(Modifier.weight(1f)) {
                 items(spells) { spell ->
-                    Text("${spell.name} - ${spell.level}", Modifier.padding(8.dp))
+                    Text(
+                        "${spell.name} - ${spell.level}",
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clickable {
+                                navController.navigate("spellDetail/${spell.slug}")
+                            }
+                    )
                 }
             }
         }

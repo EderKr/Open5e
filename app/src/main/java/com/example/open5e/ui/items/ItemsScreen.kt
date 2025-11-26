@@ -1,5 +1,6 @@
 package com.example.open5e.ui.items
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.open5e.MainViewModel
 import com.example.open5e.models.MagicItem
-import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
-fun ItemsScreen(viewModel: MainViewModel = viewModel()) {
+fun ItemsScreen(
+    navController: NavController,
+    viewModel: MainViewModel = viewModel()
+) {
     var items by remember { mutableStateOf<List<MagicItem>>(emptyList()) }
     var rarity by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("") }
@@ -82,25 +87,28 @@ fun ItemsScreen(viewModel: MainViewModel = viewModel()) {
         Spacer(Modifier.height(8.dp))
 
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items) { it ->
-                    Text("${it.name} - Rarity: ${it.rarity}, Type: ${it.type}", Modifier.padding(8.dp))
+            LazyColumn(Modifier.weight(1f)) {
+                items(items) { item ->
+                    Text(
+                        "${item.name} - ${item.rarity} - ${item.type}",
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clickable {
+                                navController.navigate("itemDetail/${item.slug}")
+                            }
+                    )
                 }
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Button(onClick = { if (canBack) { page--; loadPage() } }, enabled = canBack) {
-                Text("Back")
-            }
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+            Button(onClick = { if (canBack) { page--; loadPage() } }, enabled = canBack) { Text("Back") }
             Text(if (totalPages > 0) "Página $page de $totalPages" else "Página $page")
-            Button(onClick = { if (canNext) { page++; loadPage() } }, enabled = canNext) {
-                Text("Next")
-            }
+            Button(onClick = { if (canNext) { page++; loadPage() } }, enabled = canNext) { Text("Next") }
         }
 
         errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }

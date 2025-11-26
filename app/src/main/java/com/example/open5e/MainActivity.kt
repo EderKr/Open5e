@@ -11,6 +11,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.open5e.ui.account.AccountScreen
 import com.example.open5e.ui.creatures.CreaturesScreen
+import com.example.open5e.ui.details.ItemDetailScreen
+import com.example.open5e.ui.details.MonsterDetailScreen
+import com.example.open5e.ui.details.SpellDetailScreen
 import com.example.open5e.ui.home.HomeScreen
 import com.example.open5e.ui.items.ItemsScreen
 import com.example.open5e.ui.login.LoginScreen
@@ -33,12 +36,23 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "login") {
+
+        // LOGIN
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { navController.navigate("home") },
                 onSignUp = { navController.navigate("signup") }
             )
         }
+
+        // SIGN UP
+        composable("signup") {
+            SignUpScreen(
+                onSignUpSuccess = { navController.navigate("login") }
+            )
+        }
+
+        // HOME
         composable("home") {
             HomeScreen(
                 onCreaturesClick = { navController.navigate("creatures") },
@@ -52,22 +66,54 @@ fun AppNavigation(navController: NavHostController) {
                 }
             )
         }
+
+        // CREATURE LIST
         composable("creatures") {
-            CreaturesScreen(viewModel = viewModel())
+            CreaturesScreen(
+                viewModel = viewModel(),
+                navController = navController
+            )
         }
+
+        // SPELL LIST
         composable("spells") {
-            SpellsScreen(viewModel = viewModel())
+            SpellsScreen(
+                viewModel = viewModel(),
+                navController = navController
+            )
         }
+
+        // ITEM LIST
         composable("items") {
-            ItemsScreen(viewModel = viewModel())
+            ItemsScreen(
+                viewModel = viewModel(),
+                navController = navController
+            )
         }
+
+        // ACCOUNT
         composable("account") {
             AccountScreen(viewModel = viewModel())
         }
-        composable("signup") {
-            SignUpScreen(
-                onSignUpSuccess = { navController.navigate("login") }
-            )
+
+        // DETAILS -------------------------------------------------------------
+
+        // MONSTER DETAIL
+        composable("monsterDetail/{slug}") { backStackEntry ->
+            val slug = backStackEntry.arguments?.getString("slug") ?: ""
+            MonsterDetailScreen(slug = slug)
+        }
+
+        // SPELL DETAIL
+        composable("spellDetail/{slug}") { backStackEntry ->
+            val slug = backStackEntry.arguments?.getString("slug") ?: ""
+            SpellDetailScreen(slug = slug)
+        }
+
+        // ITEM DETAIL
+        composable("itemDetail/{slug}") { backStackEntry ->
+            val slug = backStackEntry.arguments?.getString("slug") ?: ""
+            ItemDetailScreen(slug = slug)
         }
     }
 }

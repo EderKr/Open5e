@@ -1,5 +1,6 @@
 package com.example.open5e.ui.creatures
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.open5e.MainViewModel
 import com.example.open5e.models.Monster
-import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
-fun CreaturesScreen(viewModel: MainViewModel = viewModel()) {
+fun CreaturesScreen(
+    navController: NavController,
+    viewModel: MainViewModel = viewModel()
+) {
     var creatures by remember { mutableStateOf<List<Monster>>(emptyList()) }
     var crFilter by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -73,14 +78,20 @@ fun CreaturesScreen(viewModel: MainViewModel = viewModel()) {
         Spacer(Modifier.height(8.dp))
 
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(creatures) { creature ->
-                    Text("${creature.name} - CR: ${creature.challenge_rating}, HP: ${creature.hit_points}",
-                        modifier = Modifier.padding(8.dp))
+                    Text(
+                        "${creature.name} - CR: ${creature.challenge_rating}, HP: ${creature.hit_points}",
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .clickable {
+                                navController.navigate("monsterDetail/${creature.slug}")
+                            }
+                    )
                 }
             }
         }
@@ -95,7 +106,9 @@ fun CreaturesScreen(viewModel: MainViewModel = viewModel()) {
             }
         }
 
-        errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        errorMessage?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
+        }
     }
 
     LaunchedEffect(Unit) { loadPage() }
