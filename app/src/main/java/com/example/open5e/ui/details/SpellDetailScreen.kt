@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.open5e.models.Spell
+import com.example.open5e.ui.components.TextMarkdown
 import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
@@ -57,25 +58,25 @@ fun SpellDetailScreen(
             Text(s.name, style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(12.dp))
 
-            Text("Level: ${s.level}")
-            Text("School: ${s.school ?: "Unknown"}")
+            TextMarkdown("Level: ${s.level}")
+            TextMarkdown("School: ${s.school ?: "Unknown"}")
 
             Spacer(Modifier.height(16.dp))
 
-            Text("Casting Time: ${s.casting_time}")
-            Text("Range: ${s.range}")
-            Text("Components: ${s.components}")
-            Text("Duration: ${s.duration}")
+            TextMarkdown("Casting Time: ${s.casting_time}")
+            TextMarkdown("Range: ${s.range}")
+            TextMarkdown("Components: ${s.components}")
+            TextMarkdown("Duration: ${s.duration}")
 
             Spacer(Modifier.height(16.dp))
 
             Text("Description", style = MaterialTheme.typography.titleMedium)
-            Text(s.desc ?: "No description available.")
+            TextMarkdown(s.desc ?: "No description available.")
 
             s.higher_level?.let {
                 Spacer(Modifier.height(16.dp))
                 Text("At Higher Levels", style = MaterialTheme.typography.titleMedium)
-                Text(it)
+                TextMarkdown(it)
             }
         }
     }

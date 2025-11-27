@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.open5e.models.Monster
+import com.example.open5e.ui.components.TextMarkdown
 import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
@@ -64,15 +65,15 @@ fun MonsterDetailScreen(
 
             item {
                 Text(m.name ?: "Unknown", style = MaterialTheme.typography.headlineLarge)
-                Text("${m.size ?: ""} ${m.type ?: ""}".trim())
-                Text("Alignment: ${m.alignment ?: "Unknown"}")
+                TextMarkdown("${m.size ?: ""} ${m.type ?: ""}".trim())
+                TextMarkdown("Alignment: ${m.alignment ?: "Unknown"}")
                 Spacer(Modifier.height(8.dp))
             }
 
             item {
                 Text("Stats", style = MaterialTheme.typography.titleMedium)
-                Text("Armor Class: ${m.armor_class ?: 0} (${m.armor_desc ?: "no armor info"})")
-                Text("Hit Points: ${m.hit_points ?: 0} (${m.hit_dice ?: "-"})")
+                TextMarkdown("Armor Class: ${m.armor_class ?: 0} (${m.armor_desc ?: "no armor info"})")
+                TextMarkdown("Hit Points: ${m.hit_points ?: 0} (${m.hit_dice ?: "-"})")
             }
 
             item {
@@ -90,9 +91,9 @@ fun MonsterDetailScreen(
 
             item {
                 Text("Abilities", style = MaterialTheme.typography.titleMedium)
-                Text("STR ${m.strength ?: 0}   |   DEX ${m.dexterity ?: 0}")
-                Text("CON ${m.constitution ?: 0}   |   INT ${m.intelligence ?: 0}")
-                Text("WIS ${m.wisdom ?: 0}   |   CHA ${m.charisma ?: 0}")
+                TextMarkdown("STR ${m.strength ?: 0}   |   DEX ${m.dexterity ?: 0}")
+                TextMarkdown("CON ${m.constitution ?: 0}   |   INT ${m.intelligence ?: 0}")
+                TextMarkdown("WIS ${m.wisdom ?: 0}   |   CHA ${m.charisma ?: 0}")
             }
 
             if (
@@ -114,7 +115,7 @@ fun MonsterDetailScreen(
                 item {
                     Text("Skills", style = MaterialTheme.typography.titleMedium)
                     m.skills.forEach { (skill, mod) ->
-                        Text("$skill: +$mod")
+                        TextMarkdown("$skill: +$mod")
                     }
                 }
             }
@@ -141,14 +142,14 @@ fun MonsterDetailScreen(
             }
 
             if (!m.senses.isNullOrBlank()) {
-                item { Text("Senses: ${m.senses}") }
+                item { TextMarkdown("Senses: ${m.senses}") }
             }
             if (!m.languages.isNullOrBlank()) {
-                item { Text("Languages: ${m.languages}") }
+                item { TextMarkdown("Languages: ${m.languages}") }
             }
 
             item {
-                Text("Challenge Rating: ${m.challenge_rating ?: "?"}")
+                TextMarkdown("Challenge Rating: ${m.challenge_rating ?: "?"}")
             }
 
             if (!m.actions.isNullOrEmpty()) {
@@ -157,7 +158,7 @@ fun MonsterDetailScreen(
                 items(m.actions) { action ->
                     Column {
                         Text("• ${action.name}", style = MaterialTheme.typography.titleSmall)
-                        Text(action.desc ?: "No description")
+                        TextMarkdown(action.desc ?: "No description")
                         Spacer(Modifier.height(6.dp))
                     }
                 }
@@ -169,7 +170,7 @@ fun MonsterDetailScreen(
                 items(m.bonus_actions) { ba ->
                     Column {
                         Text("• ${ba.name}", style = MaterialTheme.typography.titleSmall)
-                        Text(ba.desc ?: "No description")
+                        TextMarkdown(ba.desc ?: "No description")
                         Spacer(Modifier.height(6.dp))
                     }
                 }
@@ -181,7 +182,7 @@ fun MonsterDetailScreen(
                 items(m.reactions) { r ->
                     Column {
                         Text("• ${r.name}", style = MaterialTheme.typography.titleSmall)
-                        Text(r.desc ?: "No description")
+                        TextMarkdown(r.desc ?: "No description")
                         Spacer(Modifier.height(6.dp))
                     }
                 }
@@ -191,13 +192,13 @@ fun MonsterDetailScreen(
                 item {
                     Text("Legendary Actions", style = MaterialTheme.typography.titleMedium)
                     if (!m.legendary_desc.isNullOrBlank())
-                        Text(m.legendary_desc)
+                        TextMarkdown(m.legendary_desc)
                 }
 
                 items(m.legendary_actions) { la ->
                     Column {
                         Text("• ${la.name}", style = MaterialTheme.typography.titleSmall)
-                        Text(la.desc ?: "No description")
+                        TextMarkdown(la.desc ?: "No description")
                         Spacer(Modifier.height(6.dp))
                     }
                 }
@@ -209,7 +210,7 @@ fun MonsterDetailScreen(
                 items(m.special_abilities) { sa ->
                     Column {
                         Text("✦ ${sa.name}", style = MaterialTheme.typography.titleSmall)
-                        Text(sa.desc ?: "No description")
+                        TextMarkdown(sa.desc ?: "No description")
                         Spacer(Modifier.height(6.dp))
                     }
                 }
@@ -218,13 +219,13 @@ fun MonsterDetailScreen(
             if (!m.desc.isNullOrBlank()) {
                 item {
                     Text("Description", style = MaterialTheme.typography.titleMedium)
-                    Text(m.desc)
+                    TextMarkdown(m.desc)
                 }
             }
 
             item {
                 Spacer(Modifier.height(16.dp))
-                Text("Source: ${m.document__title ?: "Unknown"}")
+                TextMarkdown("Source: ${m.document__title ?: "Unknown"}")
             }
         }
     }

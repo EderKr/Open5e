@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.open5e.models.MagicItem
+import com.example.open5e.ui.components.TextMarkdown
 import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
@@ -67,7 +68,7 @@ fun ItemDetailScreen(
 
             item {
                 Text("Description", style = MaterialTheme.typography.titleMedium)
-                Text(i.desc ?: "No description available.")
+                TextMarkdown(i.desc ?: "No description available.")
             }
         }
     }
