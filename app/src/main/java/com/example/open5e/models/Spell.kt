@@ -5,7 +5,7 @@ data class Spell(
     val slug: String,
     val level: String,
     val school: String?,
-    val description: String?,
+    val desc: String?,
     val higher_level: String? = null,
     val casting_time: String?,
     val range: String?,

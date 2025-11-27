@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.open5e.viewmodels.MainViewModel
 import com.example.open5e.models.Spell
+import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
 fun SpellDetailScreen(
@@ -70,7 +70,7 @@ fun SpellDetailScreen(
             Spacer(Modifier.height(16.dp))
 
             Text("Description", style = MaterialTheme.typography.titleMedium)
-            Text(s.description ?: "No description available.")
+            Text(s.desc ?: "No description available.")
 
             s.higher_level?.let {
                 Spacer(Modifier.height(16.dp))
