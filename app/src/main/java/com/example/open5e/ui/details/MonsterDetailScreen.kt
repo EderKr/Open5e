@@ -62,7 +62,6 @@ fun MonsterDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // HEADER --------------------------------------------------
             item {
                 Text(m.name ?: "Unknown", style = MaterialTheme.typography.headlineLarge)
                 Text("${m.size ?: ""} ${m.type ?: ""}".trim())
@@ -70,14 +69,12 @@ fun MonsterDetailScreen(
                 Spacer(Modifier.height(8.dp))
             }
 
-            // BASIC STATS -------------------------------------------
             item {
                 Text("Stats", style = MaterialTheme.typography.titleMedium)
                 Text("Armor Class: ${m.armor_class ?: 0} (${m.armor_desc ?: "no armor info"})")
                 Text("Hit Points: ${m.hit_points ?: 0} (${m.hit_dice ?: "-"})")
             }
 
-            // SPEED ---------------------------------------------------
             item {
                 Text("Speed", style = MaterialTheme.typography.titleMedium)
                 Text(
@@ -91,7 +88,6 @@ fun MonsterDetailScreen(
                 )
             }
 
-            // ABILITY SCORES -----------------------------------------
             item {
                 Text("Abilities", style = MaterialTheme.typography.titleMedium)
                 Text("STR ${m.strength ?: 0}   |   DEX ${m.dexterity ?: 0}")
@@ -99,7 +95,6 @@ fun MonsterDetailScreen(
                 Text("WIS ${m.wisdom ?: 0}   |   CHA ${m.charisma ?: 0}")
             }
 
-            // SAVING THROWS ------------------------------------------
             if (
                 m.strength_save != null || m.dexterity_save != null || m.constitution_save != null ||
                 m.intelligence_save != null || m.wisdom_save != null || m.charisma_save != null
@@ -115,7 +110,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // SKILLS --------------------------------------------------
             if (!m.skills.isNullOrEmpty()) {
                 item {
                     Text("Skills", style = MaterialTheme.typography.titleMedium)
@@ -125,7 +119,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // DEFENSES ----------------------------------------------
             if (!m.damage_vulnerabilities.isNullOrBlank() ||
                 !m.damage_resistances.isNullOrBlank() ||
                 !m.damage_immunities.isNullOrBlank() ||
@@ -147,7 +140,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // SENSES + LANGUAGES ------------------------------------
             if (!m.senses.isNullOrBlank()) {
                 item { Text("Senses: ${m.senses}") }
             }
@@ -155,12 +147,10 @@ fun MonsterDetailScreen(
                 item { Text("Languages: ${m.languages}") }
             }
 
-            // CHALLENGE RATING ---------------------------------------
             item {
                 Text("Challenge Rating: ${m.challenge_rating ?: "?"}")
             }
 
-            // ACTIONS -------------------------------------------------
             if (!m.actions.isNullOrEmpty()) {
                 item { Text("Actions", style = MaterialTheme.typography.titleMedium) }
 
@@ -173,7 +163,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // BONUS ACTIONS ------------------------------------------
             if (!m.bonus_actions.isNullOrEmpty()) {
                 item { Text("Bonus Actions", style = MaterialTheme.typography.titleMedium) }
 
@@ -186,7 +175,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // REACTIONS ----------------------------------------------
             if (!m.reactions.isNullOrEmpty()) {
                 item { Text("Reactions", style = MaterialTheme.typography.titleMedium) }
 
@@ -199,7 +187,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // LEGENDARY ACTIONS --------------------------------------
             if (!m.legendary_actions.isNullOrEmpty()) {
                 item {
                     Text("Legendary Actions", style = MaterialTheme.typography.titleMedium)
@@ -216,7 +203,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // SPECIAL ABILITIES --------------------------------------
             if (!m.special_abilities.isNullOrEmpty()) {
                 item { Text("Special Abilities", style = MaterialTheme.typography.titleMedium) }
 
@@ -229,7 +215,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // DESCRIPTION --------------------------------------------
             if (!m.desc.isNullOrBlank()) {
                 item {
                     Text("Description", style = MaterialTheme.typography.titleMedium)
@@ -237,7 +222,6 @@ fun MonsterDetailScreen(
                 }
             }
 
-            // DOCUMENT INFO ------------------------------------------
             item {
                 Spacer(Modifier.height(16.dp))
                 Text("Source: ${m.document__title ?: "Unknown"}")
