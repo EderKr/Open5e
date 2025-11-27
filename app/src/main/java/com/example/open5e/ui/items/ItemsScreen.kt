@@ -29,8 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.open5e.MainViewModel
 import com.example.open5e.models.MagicItem
+import com.example.open5e.viewmodels.MainViewModel
 
 @Composable
 fun ItemsScreen(

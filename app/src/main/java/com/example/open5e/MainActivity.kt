@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "login") {
 
-        // LOGIN
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { navController.navigate("home") },
@@ -45,14 +44,12 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // SIGN UP
         composable("signup") {
             SignUpScreen(
                 onSignUpSuccess = { navController.navigate("login") }
             )
         }
 
-        // HOME
         composable("home") {
             HomeScreen(
                 onCreaturesClick = { navController.navigate("creatures") },
@@ -67,7 +64,6 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // CREATURE LIST
         composable("creatures") {
             CreaturesScreen(
                 viewModel = viewModel(),
@@ -75,7 +71,6 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // SPELL LIST
         composable("spells") {
             SpellsScreen(
                 viewModel = viewModel(),
@@ -83,7 +78,6 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // ITEM LIST
         composable("items") {
             ItemsScreen(
                 viewModel = viewModel(),
@@ -91,26 +85,20 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // ACCOUNT
         composable("account") {
             AccountScreen(viewModel = viewModel())
         }
 
-        // DETAILS -------------------------------------------------------------
-
-        // MONSTER DETAIL
         composable("monsterDetail/{slug}") { backStackEntry ->
             val slug = backStackEntry.arguments?.getString("slug") ?: ""
             MonsterDetailScreen(slug = slug)
         }
 
-        // SPELL DETAIL
         composable("spellDetail/{slug}") { backStackEntry ->
             val slug = backStackEntry.arguments?.getString("slug") ?: ""
             SpellDetailScreen(slug = slug)
         }
 
-        // ITEM DETAIL
         composable("itemDetail/{slug}") { backStackEntry ->
             val slug = backStackEntry.arguments?.getString("slug") ?: ""
             ItemDetailScreen(slug = slug)

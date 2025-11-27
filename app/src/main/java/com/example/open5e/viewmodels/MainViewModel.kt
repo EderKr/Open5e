@@ -13,22 +13,18 @@ private const val PAGE_SIZE = 15
 
 class MainViewModel : ViewModel() {
     private val apiService: Open5eService = ApiClient.createService(Open5eService::class.java)
-
     private val allMonsters = mutableListOf<Monster>()
     private var monstersNextApiPage = 1
     private var monstersMoreAvailable = true
-
     private val allSpells = mutableListOf<Spell>()
     private var spellsNextApiPage = 1
     private var spellsMoreAvailable = true
-
     private val allItems = mutableListOf<MagicItem>()
     private var itemsNextApiPage = 1
     private var itemsMoreAvailable = true
     private var lastItemsRarity = ""
     private var lastItemsType = ""
 
-    // ---------- MONSTERS ----------
     fun fetchMonstersPage(
         challengeRating: String,
         page: Int,
@@ -37,9 +33,8 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val desiredStart = (page - 1) * PAGE_SIZE
-                var filtered = if (challengeRating.isBlank()) allMonsters.toList()
+                var filtered: List<Monster> = if (challengeRating.isBlank()) allMonsters.toList()
                 else allMonsters.filter { it.challenge_rating.equals(challengeRating, ignoreCase = true) }
-
                 while (filtered.size <= desiredStart && monstersMoreAvailable) {
                     val response = apiService.getMonsters(monstersNextApiPage)
                     if (response.isSuccessful) {
@@ -52,6 +47,7 @@ class MainViewModel : ViewModel() {
 
                             monstersNextApiPage++
                             monstersMoreAvailable = body.next != null
+
                             filtered = if (challengeRating.isBlank()) allMonsters.toList()
                             else allMonsters.filter { it.challenge_rating.equals(challengeRating, ignoreCase = true) }
                         } else {
@@ -67,23 +63,24 @@ class MainViewModel : ViewModel() {
 
                 val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
                 else {
-                    if (!monstersMoreAvailable && totalPages > 0) {
+                    if (totalPages > 0) {
                         val lastStart = (totalPages - 1) * PAGE_SIZE
                         filtered.drop(lastStart).take(PAGE_SIZE)
-                    } else emptyList()
+                    } else {
+                        emptyList()
+                    }
                 }
 
                 val canBack = page > 1 && filtered.isNotEmpty()
                 val canNext = (filtered.size > page * PAGE_SIZE) || monstersMoreAvailable
 
                 onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (e: Exception) {
-                onResult(emptyList(), false, false, 0, e.message)
+            } catch (t: Throwable) {
+                onResult(emptyList(), false, false, 0, t.message)
             }
         }
     }
 
-    // ---------- SPELLS ----------
     fun fetchSpellsPage(
         level: String,
         page: Int,
@@ -92,7 +89,8 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val desiredStart = (page - 1) * PAGE_SIZE
-                var filtered = if (level.isBlank()) allSpells.toList()
+
+                var filtered: List<Spell> = if (level.isBlank()) allSpells.toList()
                 else allSpells.filter { it.level.equals(level, ignoreCase = true) }
 
                 while (filtered.size <= desiredStart && spellsMoreAvailable) {
@@ -107,6 +105,7 @@ class MainViewModel : ViewModel() {
 
                             spellsNextApiPage++
                             spellsMoreAvailable = body.next != null
+
                             filtered = if (level.isBlank()) allSpells.toList()
                             else allSpells.filter { it.level.equals(level, ignoreCase = true) }
                         } else {
@@ -122,7 +121,7 @@ class MainViewModel : ViewModel() {
 
                 val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
                 else {
-                    if (!spellsMoreAvailable && totalPages > 0) {
+                    if (totalPages > 0) {
                         val lastStart = (totalPages - 1) * PAGE_SIZE
                         filtered.drop(lastStart).take(PAGE_SIZE)
                     } else emptyList()
@@ -132,13 +131,12 @@ class MainViewModel : ViewModel() {
                 val canNext = (filtered.size > page * PAGE_SIZE) || spellsMoreAvailable
 
                 onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (e: Exception) {
-                onResult(emptyList(), false, false, 0, e.message)
+            } catch (t: Throwable) {
+                onResult(emptyList(), false, false, 0, t.message)
             }
         }
     }
 
-    // ---------- MAGIC ITEMS ----------
     fun fetchItemsPage(
         rarity: String,
         type: String,
@@ -156,7 +154,8 @@ class MainViewModel : ViewModel() {
                 }
 
                 val desiredStart = (page - 1) * PAGE_SIZE
-                var filtered = if (rarity.isBlank() && type.isBlank()) allItems.toList()
+
+                var filtered: List<MagicItem> = if (rarity.isBlank() && type.isBlank()) allItems.toList()
                 else allItems.filter {
                     (rarity.isBlank() || it.rarity.equals(rarity, ignoreCase = true)) &&
                             (type.isBlank() || it.type.equals(type, ignoreCase = true))
@@ -174,6 +173,7 @@ class MainViewModel : ViewModel() {
 
                             itemsNextApiPage++
                             itemsMoreAvailable = body.next != null
+
                             filtered = if (rarity.isBlank() && type.isBlank()) allItems.toList()
                             else allItems.filter {
                                 (rarity.isBlank() || it.rarity.equals(rarity, ignoreCase = true)) &&
@@ -192,7 +192,7 @@ class MainViewModel : ViewModel() {
 
                 val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
                 else {
-                    if (!itemsMoreAvailable && totalPages > 0) {
+                    if (totalPages > 0) {
                         val lastStart = (totalPages - 1) * PAGE_SIZE
                         filtered.drop(lastStart).take(PAGE_SIZE)
                     } else emptyList()
@@ -202,8 +202,44 @@ class MainViewModel : ViewModel() {
                 val canNext = (filtered.size > page * PAGE_SIZE) || itemsMoreAvailable
 
                 onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (e: Exception) {
-                onResult(emptyList(), false, false, 0, e.message)
+            } catch (t: Throwable) {
+                onResult(emptyList(), false, false, 0, t.message)
+            }
+        }
+    }
+
+    fun fetchMonsterDetail(slug: String, onResult: (Monster?, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getMonsterDetail(slug)
+                if (response.isSuccessful) onResult(response.body(), null)
+                else onResult(null, "Failed: ${response.message()}")
+            } catch (t: Throwable) {
+                onResult(null, t.message)
+            }
+        }
+    }
+
+    fun fetchSpellDetail(slug: String, onResult: (Spell?, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getSpellDetail(slug)
+                if (response.isSuccessful) onResult(response.body(), null)
+                else onResult(null, "Failed: ${response.message()}")
+            } catch (t: Throwable) {
+                onResult(null, t.message)
+            }
+        }
+    }
+
+    fun fetchItemDetail(slug: String, onResult: (MagicItem?, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getItemDetail(slug)
+                if (response.isSuccessful) onResult(response.body(), null)
+                else onResult(null, "Failed: ${response.message()}")
+            } catch (t: Throwable) {
+                onResult(null, t.message)
             }
         }
     }

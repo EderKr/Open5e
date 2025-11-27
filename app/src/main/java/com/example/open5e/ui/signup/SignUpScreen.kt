@@ -38,10 +38,7 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
     ) {
         Text(text = "Sign Up", style = MaterialTheme.typography.headlineLarge)
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Email Field
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -51,7 +48,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
         TextField(
             value = username,
             onValueChange = { username = it },
@@ -61,7 +57,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
         TextField(
             value = phone,
             onValueChange = { phone = it },
@@ -71,7 +66,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
         TextField(
             value = password,
             onValueChange = { password = it },
@@ -82,7 +76,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
         TextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -93,7 +86,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-
         if (showError) {
             Text(
                 text = errorMessage,
@@ -103,7 +95,6 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = {
                 if (email.isEmpty() || username.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {

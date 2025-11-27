@@ -5,9 +5,8 @@ import com.example.open5e.models.Monster
 import com.example.open5e.models.Spell
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Query
 import retrofit2.http.Path
-
+import retrofit2.http.Query
 
 interface Open5eService {
 

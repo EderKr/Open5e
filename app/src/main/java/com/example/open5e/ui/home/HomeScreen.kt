@@ -21,7 +21,6 @@ fun HomeScreen(
     onAccountClick: () -> Unit,
     onLogoutClick: () -> Unit
 ) {
-    // Main layout for the home screen
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -29,13 +28,10 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header title
         Text(
             text = "Welcome to Open5e",
             style = MaterialTheme.typography.headlineLarge
         )
-
-        // Navigation buttons
         Button(
             onClick = onCreaturesClick,
             modifier = Modifier.fillMaxWidth()
