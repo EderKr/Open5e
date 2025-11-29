@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
@@ -29,55 +30,42 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val auth = FirebaseAuth.getInstance()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Log in", style = MaterialTheme.typography.headlineLarge)
+        Text("Log in", style = MaterialTheme.typography.headlineLarge)
+        Spacer(Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Your Email") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = showError && email.isEmpty()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        TextField(value = email, onValueChange = { email = it }, label = { Text("Your Email") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
         TextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
             modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            isError = showError && password.isEmpty()
+            visualTransformation = PasswordVisualTransformation()
         )
 
-        if (showError) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Please fill in all fields.",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
+        errorMessage?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (email.isNotEmpty() && password.isNotEmpty()) {
-                    onLoginSuccess()
+                if (email.isBlank() || password.isBlank()) {
+                    errorMessage = "Fill in all fields."
                 } else {
-                    showError = true
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { onLoginSuccess() }
+                        .addOnFailureListener { errorMessage = it.message }
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -85,8 +73,9 @@ fun LoginScreen(
             Text("Continue")
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        TextButton(onClick = { onSignUp() }) {
+        Spacer(Modifier.height(8.dp))
+
+        TextButton(onClick = onSignUp) {
             Text("Don’t have an account? Sign up")
         }
     }

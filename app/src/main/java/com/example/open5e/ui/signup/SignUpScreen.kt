@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun SignUpScreen(onSignUpSuccess: () -> Unit) {
@@ -27,86 +29,62 @@ fun SignUpScreen(onSignUpSuccess: () -> Unit) {
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Sign Up", style = MaterialTheme.typography.headlineLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        TextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Your Email") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = showError && email.isEmpty()
-        )
+        Text("Sign Up", style = MaterialTheme.typography.headlineLarge)
+        Spacer(Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = showError && username.isEmpty()
-        )
+        TextField(value = email, onValueChange = { email = it }, label = { Text("Your Email") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        TextField(value = username, onValueChange = { username = it }, label = { Text("Username") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        TextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(8.dp))
+        TextField(value = password, onValueChange = { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
+        Spacer(Modifier.height(8.dp))
+        TextField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = { Text("Confirm Password") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
 
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone") },
-            modifier = Modifier.fillMaxWidth(),
-            isError = showError && phone.isEmpty()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            isError = showError && password.isEmpty()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation(),
-            isError = showError && confirmPassword.isEmpty()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-        if (showError) {
-            Text(
-                text = errorMessage,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
-            )
+        errorMessage?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
+
         Button(
             onClick = {
-                if (email.isEmpty() || username.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
-                    showError = true
+                if (email.isEmpty() || username.isEmpty() || phone.isEmpty() || password.isEmpty()) {
                     errorMessage = "All fields must be filled."
-                } else if (password != confirmPassword) {
-                    showError = true
-                    errorMessage = "Passwords do not match."
-                } else {
-                    showError = false
-                    onSignUpSuccess()
+                    return@Button
                 }
+                if (password != confirmPassword) {
+                    errorMessage = "Passwords do not match."
+                    return@Button
+                }
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnSuccessListener { result ->
+                        val uid = result.user!!.uid
+
+                        val userData = mapOf(
+                            "username" to username,
+                            "email" to email,
+                            "phone" to phone
+                        )
+
+                        firestore.collection("users").document(uid)
+                            .set(userData)
+                            .addOnSuccessListener { onSignUpSuccess() }
+                            .addOnFailureListener { errorMessage = it.message }
+                    }
+                    .addOnFailureListener { errorMessage = it.message }
             },
             modifier = Modifier.fillMaxWidth()
         ) {

@@ -1,1 +1,29 @@
-{ "placeholder": "Replace this file with your Firebase google-services.json" }
+{
+  "project_info": {
+    "project_number": "218683478970",
+    "project_id": "open5e-app-60633",
+    "storage_bucket": "open5e-app-60633.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218683478970:android:208a35b57e4493b5bac383",
+        "android_client_info": {
+          "package_name": "com.example.open5e"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNnthrWulIjOUewfrfnQyPHuCu68f4uIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
