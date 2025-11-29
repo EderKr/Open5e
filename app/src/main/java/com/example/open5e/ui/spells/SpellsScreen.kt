@@ -33,112 +33,135 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.open5e.viewmodels.MainViewModel
 import com.example.open5e.models.Spell
+import com.example.open5e.viewmodels.MainViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpellsScreen(
     navController: NavController,
     viewModel: MainViewModel = viewModel()
 ) {
-    var spells by remember { mutableStateOf<List<Spell>>(emptyList()) }
     var selectedLevel by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var page by remember { mutableIntStateOf(1) }
-    var canBack by remember { mutableStateOf(false) }
-    var canNext by remember { mutableStateOf(false) }
-    var totalPages by remember { mutableIntStateOf(0) }
-    var isLoading by remember { mutableStateOf(false) }
+    var spells by remember { mutableStateOf<List<Spell>>(emptyList()) }
 
-    val levels = listOf(
-        "Cantrip","1st-level","2nd-level","3rd-level","4th-level","5th-level",
-        "6th-level","7th-level","8th-level","9th-level"
+    var page by remember { mutableIntStateOf(1) }
+    var totalPages by remember { mutableIntStateOf(0) }
+    var canNext by remember { mutableStateOf(false) }
+    var canBack by remember { mutableStateOf(false) }
+
+    var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    val spellLevels = listOf(
+        "", "Cantrip", "1st-level","2nd-level","3rd-level",
+        "4th-level","5th-level","6th-level","7th-level","8th-level","9th-level"
     )
 
-    fun loadPage() {
-        isLoading = true
-        viewModel.fetchSpellsPage(selectedLevel, page) { result, back, next, tp, error ->
+    fun load() {
+        loading = true
+        viewModel.fetchSpellsPage(selectedLevel, page) { result, back, next, tp, err ->
             spells = result
             canBack = back
             canNext = next
             totalPages = tp
-            errorMessage = error
-            isLoading = false
+            error = err
+            loading = false
         }
     }
 
+    LaunchedEffect(Unit) { load() }
+
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Spell List", style = MaterialTheme.typography.headlineMedium)
+
+        Text("Spells", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(Modifier.height(8.dp))
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+        DropdownMenuBox(
+            selected = selectedLevel,
+            options = spellLevels,
+            label = "Spell Level",
+            onSelect = { selectedLevel = it }
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { page = 1; load() }
         ) {
-            TextField(
-                value = selectedLevel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Spell Level") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                modifier = Modifier.menuAnchor().fillMaxWidth()
-            )
-
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                levels.forEach { level ->
-                    DropdownMenuItem(
-                        text = { Text(level) },
-                        onClick = {
-                            selectedLevel = level
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Button(onClick = { page = 1; loadPage() }, modifier = Modifier.fillMaxWidth()) {
             Text("Search")
         }
 
         Spacer(Modifier.height(8.dp))
 
-        if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        if (loading) {
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
             LazyColumn(Modifier.weight(1f)) {
-                items(spells) { spell ->
+                items(spells) { sp ->
                     Text(
-                        "${spell.name} - ${spell.level}",
+                        "${sp.name} (${sp.level})",
                         modifier = Modifier
-                            .padding(8.dp)
-                            .clickable {
-                                navController.navigate("spellDetail/${spell.slug}")
-                            }
+                            .padding(10.dp)
+                            .clickable { navController.navigate("spellDetail/${sp.slug}") }
                     )
                 }
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Button(onClick = { if (canBack) { page--; loadPage() } }, enabled = canBack) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Button(onClick = { if (canBack) { page--; load() } }, enabled = canBack) {
                 Text("Back")
             }
-            Text(if (totalPages > 0) "Página $page de $totalPages" else "Página $page")
-            Button(onClick = { if (canNext) { page++; loadPage() } }, enabled = canNext) {
+            Text(if (totalPages > 0) "Page $page / $totalPages" else "Page $page")
+            Button(onClick = { if (canNext) { page++; load() } }, enabled = canNext) {
                 Text("Next")
             }
         }
 
-        errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
+}
 
-    LaunchedEffect(Unit) { loadPage() }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownMenuBox(
+    selected: String,
+    options: List<String>,
+    label: String,
+    onSelect: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        TextField(
+            value = selected,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
+        )
+
+        ExposedDropdownMenu(expanded, { expanded = false }) {
+            options.forEach { op ->
+                DropdownMenuItem(
+                    text = { Text(op.ifBlank { "Any" }) },
+                    onClick = {
+                        onSelect(op)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }

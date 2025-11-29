@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -222,7 +223,14 @@ fun MonsterDetailScreen(
                     TextMarkdown(m.desc)
                 }
             }
-
+            item {
+                Button(
+                    onClick = { viewModel.saveMonsterOffline(m) },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text("Salvar Offline")
+                }
+            }
             item {
                 Spacer(Modifier.height(16.dp))
                 TextMarkdown("Source: ${m.document__title ?: "Unknown"}")

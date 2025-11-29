@@ -12,18 +12,20 @@ interface Open5eService {
 
     @GET("monsters/")
     suspend fun getMonsters(
-        @Query("page") page: Int = 1
+        @Query("page") page: Int = 1,
+        @Query("cr") cr: String? = null
     ): Response<ApiResponse<Monster>>
 
     @GET("spells/")
     suspend fun getSpells(
-        @Query("page") page: Int = 1
+        @Query("page") page: Int = 1,
+        @Query("level") level: String? = null
     ): Response<ApiResponse<Spell>>
 
     @GET("magicitems/")
     suspend fun getItems(
-        @Query("rarity") rarity: String = "",
-        @Query("type") type: String = "",
+        @Query("rarity") rarity: String? = null,
+        @Query("type") type: String? = null,
         @Query("page") page: Int = 1
     ): Response<ApiResponse<MagicItem>>
 

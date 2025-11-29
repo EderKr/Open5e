@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -67,4 +68,12 @@ dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.7.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
+    implementation("androidx.room:room-runtime:2.8.4")
+    annotationProcessor("androidx.room:room-compiler:2.8.4")
+
+    kapt("androidx.room:room-compiler:2.8.4")
+
+    implementation("androidx.room:room-ktx:2.8.4")
+    testImplementation("androidx.room:room-testing:2.8.4")
 }

@@ -1,139 +1,148 @@
 package com.example.open5e.viewmodels
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.open5e.data.Open5eRepository
 import com.example.open5e.models.MagicItem
 import com.example.open5e.models.Monster
 import com.example.open5e.models.Spell
-import com.example.open5e.network.ApiClient
-import com.example.open5e.network.Open5eService
 import kotlinx.coroutines.launch
 
-private const val PAGE_SIZE = 15
+private const val UI_PAGE = 15
 
-class MainViewModel : ViewModel() {
-    private val apiService: Open5eService = ApiClient.createService(Open5eService::class.java)
-    private val allMonsters = mutableListOf<Monster>()
-    private var monstersNextApiPage = 1
-    private var monstersMoreAvailable = true
-    private val allSpells = mutableListOf<Spell>()
-    private var spellsNextApiPage = 1
-    private var spellsMoreAvailable = true
-    private val allItems = mutableListOf<MagicItem>()
-    private var itemsNextApiPage = 1
-    private var itemsMoreAvailable = true
-    private var lastItemsRarity = ""
-    private var lastItemsType = ""
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repo = Open5eRepository(application)
+
+    private val monstersBuffer = mutableListOf<Monster>()
+    private val spellsBuffer = mutableListOf<Spell>()
+    private val itemsBuffer = mutableListOf<MagicItem>()
+
+    private var nextMonPage = 1
+    private var nextSpellPage = 1
+    private var nextItemPage = 1
+
+    private var monHasMore = true
+    private var spellHasMore = true
+    private var itemHasMore = true
+
+    private var lastCR = ""
+    private var lastLevel = ""
+    private var lastRarity = ""
+    private var lastType = ""
+
+    private fun normalize(s: String?): String {
+        if (s.isNullOrBlank()) return ""
+        return s.lowercase().replace("\\s+".toRegex(), "")
+            .replace("-level", "")
+            .replace("th", "")
+            .replace("st", "")
+            .replace("nd", "")
+            .replace("rd", "")
+            .replace("º", "")
+            .replace(".", "")
+            .trim()
+    }
+
+    private fun <T> page(items: List<T>, page: Int): List<T> {
+        val p = if (page < 1) 1 else page
+        val start = (p - 1) * UI_PAGE
+        if (start >= items.size) return emptyList()
+        return items.drop(start).take(UI_PAGE)
+    }
+
+    private fun <T> totalPages(list: List<T>) =
+        if (list.isEmpty()) 0 else (list.size + UI_PAGE - 1) / UI_PAGE
 
     fun fetchMonstersPage(
-        challengeRating: String,
+        cr: String,
         page: Int,
-        onResult: (List<Monster>, Boolean, Boolean, Int, String?) -> Unit
+        cb: (List<Monster>, Boolean, Boolean, Int, String?) -> Unit
     ) {
         viewModelScope.launch {
-            try {
-                val desiredStart = (page - 1) * PAGE_SIZE
-                var filtered: List<Monster> = if (challengeRating.isBlank()) allMonsters.toList()
-                else allMonsters.filter { it.challenge_rating.equals(challengeRating, ignoreCase = true) }
-                while (filtered.size <= desiredStart && monstersMoreAvailable) {
-                    val response = apiService.getMonsters(monstersNextApiPage)
-                    if (response.isSuccessful) {
-                        val body = response.body()
-                        if (body != null) {
-                            allMonsters.addAll(body.results)
-                            val unique = allMonsters.distinctBy { it.name }
-                            allMonsters.clear()
-                            allMonsters.addAll(unique)
-
-                            monstersNextApiPage++
-                            monstersMoreAvailable = body.next != null
-
-                            filtered = if (challengeRating.isBlank()) allMonsters.toList()
-                            else allMonsters.filter { it.challenge_rating.equals(challengeRating, ignoreCase = true) }
-                        } else {
-                            monstersMoreAvailable = false
-                        }
-                    } else {
-                        monstersMoreAvailable = false
-                    }
-                }
-
-                val totalPages = if (filtered.isEmpty() && !monstersMoreAvailable) 0
-                else (filtered.size + PAGE_SIZE - 1) / PAGE_SIZE
-
-                val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
-                else {
-                    if (totalPages > 0) {
-                        val lastStart = (totalPages - 1) * PAGE_SIZE
-                        filtered.drop(lastStart).take(PAGE_SIZE)
-                    } else {
-                        emptyList()
-                    }
-                }
-
-                val canBack = page > 1 && filtered.isNotEmpty()
-                val canNext = (filtered.size > page * PAGE_SIZE) || monstersMoreAvailable
-
-                onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (t: Throwable) {
-                onResult(emptyList(), false, false, 0, t.message)
+            if (cr != lastCR) {
+                monstersBuffer.clear()
+                nextMonPage = 1
+                monHasMore = true
+                lastCR = cr
             }
+
+            var filtered: List<Monster>
+            do {
+                filtered = if (cr.isBlank()) monstersBuffer
+                else monstersBuffer.filter { it.challenge_rating == cr }
+
+                if (filtered.size >= page * UI_PAGE) break
+                if (!monHasMore) break
+
+                val api = try { repo.fetchMonstersPageOnline(nextMonPage) } catch (_: Throwable) { null }
+                if (api.isNullOrEmpty()) {
+                    monHasMore = false
+                    break
+                }
+                monstersBuffer.addAll(api)
+                nextMonPage++
+            } while (true)
+
+            filtered = if (cr.isBlank()) monstersBuffer else monstersBuffer.filter { it.challenge_rating == cr }
+            if (filtered.isEmpty()) {
+                val off = if (cr.isBlank()) repo.getAllMonstersOffline() else repo.getMonstersByCROffline(cr)
+                val total = totalPages(off)
+                cb(page(off, page), page > 1, page < total, total, null)
+                return@launch
+            }
+            val total = totalPages(filtered)
+            cb(page(filtered, page), page > 1, page < total, total, null)
         }
     }
 
     fun fetchSpellsPage(
         level: String,
         page: Int,
-        onResult: (List<Spell>, Boolean, Boolean, Int, String?) -> Unit
+        cb: (List<Spell>, Boolean, Boolean, Int, String?) -> Unit
     ) {
         viewModelScope.launch {
-            try {
-                val desiredStart = (page - 1) * PAGE_SIZE
-
-                var filtered: List<Spell> = if (level.isBlank()) allSpells.toList()
-                else allSpells.filter { it.level.equals(level, ignoreCase = true) }
-
-                while (filtered.size <= desiredStart && spellsMoreAvailable) {
-                    val response = apiService.getSpells(spellsNextApiPage)
-                    if (response.isSuccessful) {
-                        val body = response.body()
-                        if (body != null) {
-                            allSpells.addAll(body.results)
-                            val unique = allSpells.distinctBy { it.name }
-                            allSpells.clear()
-                            allSpells.addAll(unique)
-
-                            spellsNextApiPage++
-                            spellsMoreAvailable = body.next != null
-
-                            filtered = if (level.isBlank()) allSpells.toList()
-                            else allSpells.filter { it.level.equals(level, ignoreCase = true) }
-                        } else {
-                            spellsMoreAvailable = false
-                        }
-                    } else {
-                        spellsMoreAvailable = false
-                    }
-                }
-
-                val totalPages = if (filtered.isEmpty() && !spellsMoreAvailable) 0
-                else (filtered.size + PAGE_SIZE - 1) / PAGE_SIZE
-
-                val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
-                else {
-                    if (totalPages > 0) {
-                        val lastStart = (totalPages - 1) * PAGE_SIZE
-                        filtered.drop(lastStart).take(PAGE_SIZE)
-                    } else emptyList()
-                }
-
-                val canBack = page > 1 && filtered.isNotEmpty()
-                val canNext = (filtered.size > page * PAGE_SIZE) || spellsMoreAvailable
-
-                onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (t: Throwable) {
-                onResult(emptyList(), false, false, 0, t.message)
+            if (level != lastLevel) {
+                spellsBuffer.clear()
+                nextSpellPage = 1
+                spellHasMore = true
+                lastLevel = level
             }
+
+            val normalized = normalize(level)
+            fun matches(s: Spell): Boolean {
+                val l = normalize(s.level)
+                return l == normalized || l.contains(normalized) || normalized.contains(l)
+            }
+
+            var filtered: List<Spell>
+            do {
+                filtered = if (normalized.isBlank()) spellsBuffer else spellsBuffer.filter(::matches)
+                if (filtered.size >= page * UI_PAGE) break
+                if (!spellHasMore) break
+
+                val api = try {
+                    repo.fetchSpellsPageOnline(nextSpellPage, if (normalized.isBlank()) null else level)
+                } catch (_: Throwable) { null }
+
+                if (api.isNullOrEmpty()) {
+                    spellHasMore = false
+                    break
+                }
+                spellsBuffer.addAll(api)
+                nextSpellPage++
+            } while (true)
+
+            filtered = if (normalized.isBlank()) spellsBuffer else spellsBuffer.filter(::matches)
+            if (filtered.isEmpty()) {
+                val off = if (normalized.isBlank()) repo.getAllSpellsOffline() else repo.getSpellsByLevelOffline(level)
+                val total = totalPages(off)
+                cb(page(off, page), page > 1, page < total, total, null)
+                return@launch
+            }
+            val total = totalPages(filtered)
+            cb(page(filtered, page), page > 1, page < total, total, null)
         }
     }
 
@@ -141,106 +150,78 @@ class MainViewModel : ViewModel() {
         rarity: String,
         type: String,
         page: Int,
-        onResult: (List<MagicItem>, Boolean, Boolean, Int, String?) -> Unit
+        cb: (List<MagicItem>, Boolean, Boolean, Int, String?) -> Unit
     ) {
         viewModelScope.launch {
-            try {
-                if (rarity != lastItemsRarity || type != lastItemsType) {
-                    allItems.clear()
-                    itemsNextApiPage = 1
-                    itemsMoreAvailable = true
-                    lastItemsRarity = rarity
-                    lastItemsType = type
-                }
-
-                val desiredStart = (page - 1) * PAGE_SIZE
-
-                var filtered: List<MagicItem> = if (rarity.isBlank() && type.isBlank()) allItems.toList()
-                else allItems.filter {
-                    (rarity.isBlank() || it.rarity.equals(rarity, ignoreCase = true)) &&
-                            (type.isBlank() || it.type.equals(type, ignoreCase = true))
-                }
-
-                while (filtered.size <= desiredStart && itemsMoreAvailable) {
-                    val response = apiService.getItems(rarity, type, itemsNextApiPage)
-                    if (response.isSuccessful) {
-                        val body = response.body()
-                        if (body != null) {
-                            allItems.addAll(body.results)
-                            val unique = allItems.distinctBy { it.name }
-                            allItems.clear()
-                            allItems.addAll(unique)
-
-                            itemsNextApiPage++
-                            itemsMoreAvailable = body.next != null
-
-                            filtered = if (rarity.isBlank() && type.isBlank()) allItems.toList()
-                            else allItems.filter {
-                                (rarity.isBlank() || it.rarity.equals(rarity, ignoreCase = true)) &&
-                                        (type.isBlank() || it.type.equals(type, ignoreCase = true))
-                            }
-                        } else {
-                            itemsMoreAvailable = false
-                        }
-                    } else {
-                        itemsMoreAvailable = false
-                    }
-                }
-
-                val totalPages = if (filtered.isEmpty() && !itemsMoreAvailable) 0
-                else (filtered.size + PAGE_SIZE - 1) / PAGE_SIZE
-
-                val pageItems = if (filtered.size > desiredStart) filtered.drop(desiredStart).take(PAGE_SIZE)
-                else {
-                    if (totalPages > 0) {
-                        val lastStart = (totalPages - 1) * PAGE_SIZE
-                        filtered.drop(lastStart).take(PAGE_SIZE)
-                    } else emptyList()
-                }
-
-                val canBack = page > 1 && filtered.isNotEmpty()
-                val canNext = (filtered.size > page * PAGE_SIZE) || itemsMoreAvailable
-
-                onResult(pageItems, canBack, canNext, totalPages, null)
-            } catch (t: Throwable) {
-                onResult(emptyList(), false, false, 0, t.message)
+            if (rarity != lastRarity || type != lastType) {
+                itemsBuffer.clear()
+                nextItemPage = 1
+                itemHasMore = true
+                lastRarity = rarity
+                lastType = type
             }
+
+            var filtered: List<MagicItem>
+            do {
+                filtered = itemsBuffer.filter {
+                    (rarity.isBlank() || it.rarity.equals(rarity, true)) &&
+                            (type.isBlank() || it.type.equals(type, true))
+                }
+                if (filtered.size >= page * UI_PAGE) break
+                if (!itemHasMore) break
+
+                val api = try { repo.fetchItemsPageOnline(nextItemPage, rarity, type) } catch (_: Throwable) { null }
+                if (api.isNullOrEmpty()) {
+                    itemHasMore = false
+                    break
+                }
+                itemsBuffer.addAll(api)
+                nextItemPage++
+            } while (true)
+
+            filtered = itemsBuffer.filter {
+                (rarity.isBlank() || it.rarity.equals(rarity, true)) &&
+                        (type.isBlank() || it.type.equals(type, true))
+            }
+            if (filtered.isEmpty()) {
+                val off = repo.getItemsOffline(rarity, type)
+                val total = totalPages(off)
+                cb(page(off, page), page > 1, page < total, total, null)
+                return@launch
+            }
+            val total = totalPages(filtered)
+            cb(page(filtered, page), page > 1, page < total, total, null)
         }
     }
 
-    fun fetchMonsterDetail(slug: String, onResult: (Monster?, String?) -> Unit) {
+    fun saveMonsterOffline(m: Monster) = viewModelScope.launch { repo.saveMonster(m) }
+    fun saveSpellOffline(s: Spell) = viewModelScope.launch { repo.saveSpell(s) }
+    fun saveItemOffline(i: MagicItem) = viewModelScope.launch { repo.saveItem(i) }
+
+    fun fetchMonsterDetail(slug: String, cb: (Monster?, String?) -> Unit) {
         viewModelScope.launch {
-            try {
-                val response = apiService.getMonsterDetail(slug)
-                if (response.isSuccessful) onResult(response.body(), null)
-                else onResult(null, "Failed: ${response.message()}")
-            } catch (t: Throwable) {
-                onResult(null, t.message)
-            }
+            val online = try { repo.fetchMonsterOnline(slug) } catch (_: Throwable) { null }
+            if (online != null) { repo.saveMonster(online); cb(online, null); return@launch }
+            val off = repo.getMonsterOffline(slug)
+            if (off != null) cb(off, null) else cb(null, "Monster not available offline.")
         }
     }
 
-    fun fetchSpellDetail(slug: String, onResult: (Spell?, String?) -> Unit) {
+    fun fetchSpellDetail(slug: String, cb: (Spell?, String?) -> Unit) {
         viewModelScope.launch {
-            try {
-                val response = apiService.getSpellDetail(slug)
-                if (response.isSuccessful) onResult(response.body(), null)
-                else onResult(null, "Failed: ${response.message()}")
-            } catch (t: Throwable) {
-                onResult(null, t.message)
-            }
+            val online = try { repo.fetchSpellOnline(slug) } catch (_: Throwable) { null }
+            if (online != null) { repo.saveSpell(online); cb(online, null); return@launch }
+            val off = repo.getSpellOffline(slug)
+            if (off != null) cb(off, null) else cb(null, "Spell not available offline.")
         }
     }
 
-    fun fetchItemDetail(slug: String, onResult: (MagicItem?, String?) -> Unit) {
+    fun fetchItemDetail(slug: String, cb: (MagicItem?, String?) -> Unit) {
         viewModelScope.launch {
-            try {
-                val response = apiService.getItemDetail(slug)
-                if (response.isSuccessful) onResult(response.body(), null)
-                else onResult(null, "Failed: ${response.message()}")
-            } catch (t: Throwable) {
-                onResult(null, t.message)
-            }
+            val online = try { repo.fetchItemOnline(slug) } catch (_: Throwable) { null }
+            if (online != null) { repo.saveItem(online); cb(online, null); return@launch }
+            val off = repo.getItemOffline(slug)
+            if (off != null) cb(off, null) else cb(null, "Item not available offline.")
         }
     }
 }

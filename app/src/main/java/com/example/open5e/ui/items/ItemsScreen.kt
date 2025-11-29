@@ -37,33 +37,39 @@ fun ItemsScreen(
     navController: NavController,
     viewModel: MainViewModel = viewModel()
 ) {
-    var items by remember { mutableStateOf<List<MagicItem>>(emptyList()) }
     var rarity by remember { mutableStateOf("") }
     var type by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    var items by remember { mutableStateOf<List<MagicItem>>(emptyList()) }
+    var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
     var page by remember { mutableIntStateOf(1) }
     var canBack by remember { mutableStateOf(false) }
     var canNext by remember { mutableStateOf(false) }
     var totalPages by remember { mutableIntStateOf(0) }
-    var isLoading by remember { mutableStateOf(false) }
 
-    fun loadPage() {
-        isLoading = true
-        viewModel.fetchItemsPage(rarity, type, page) { result, back, next, tp, error ->
+    fun load() {
+        loading = true
+        viewModel.fetchItemsPage(rarity, type, page) { result, back, next, tp, err ->
             items = result
             canBack = back
             canNext = next
             totalPages = tp
-            errorMessage = error
-            isLoading = false
+            error = err
+            loading = false
         }
     }
 
+    LaunchedEffect(Unit) { load() }
+
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Magic Item List", style = MaterialTheme.typography.headlineMedium)
+
+        Text("Magic Items", style = MaterialTheme.typography.headlineMedium)
+
         Spacer(Modifier.height(8.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(8.dp)) {
             TextField(
                 value = rarity,
                 onValueChange = { rarity = it },
@@ -80,13 +86,16 @@ fun ItemsScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Button(onClick = { page = 1; loadPage() }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { page = 1; load() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Filter")
         }
 
         Spacer(Modifier.height(8.dp))
 
-        if (isLoading) {
+        if (loading) {
             Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator()
             }
@@ -94,8 +103,9 @@ fun ItemsScreen(
             LazyColumn(Modifier.weight(1f)) {
                 items(items) { item ->
                     Text(
-                        "${item.name} - ${item.rarity} - ${item.type}",
+                        "${item.name} (${item.rarity})",
                         modifier = Modifier
+                            .fillMaxWidth()
                             .padding(8.dp)
                             .clickable {
                                 navController.navigate("itemDetail/${item.slug}")
@@ -106,13 +116,15 @@ fun ItemsScreen(
         }
 
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-            Button(onClick = { if (canBack) { page--; loadPage() } }, enabled = canBack) { Text("Back") }
-            Text(if (totalPages > 0) "Página $page de $totalPages" else "Página $page")
-            Button(onClick = { if (canNext) { page++; loadPage() } }, enabled = canNext) { Text("Next") }
+            Button(onClick = { if (canBack) { page--; load() } }, enabled = canBack) {
+                Text("Back")
+            }
+            Text(if (totalPages > 0) "Page $page / $totalPages" else "Page $page")
+            Button(onClick = { if (canNext) { page++; load() } }, enabled = canNext) {
+                Text("Next")
+            }
         }
 
-        errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
-
-    LaunchedEffect(Unit) { loadPage() }
 }

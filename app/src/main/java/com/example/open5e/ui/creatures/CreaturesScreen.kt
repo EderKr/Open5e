@@ -37,30 +37,36 @@ fun CreaturesScreen(
     navController: NavController,
     viewModel: MainViewModel = viewModel()
 ) {
-    var creatures by remember { mutableStateOf<List<Monster>>(emptyList()) }
+    var list by remember { mutableStateOf<List<Monster>>(emptyList()) }
     var crFilter by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+
     var page by remember { mutableIntStateOf(1) }
+    var totalPages by remember { mutableIntStateOf(0) }
     var canBack by remember { mutableStateOf(false) }
     var canNext by remember { mutableStateOf(false) }
-    var totalPages by remember { mutableIntStateOf(0) }
-    var isLoading by remember { mutableStateOf(false) }
 
-    fun loadPage() {
+    var isLoading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    fun load() {
         isLoading = true
-        viewModel.fetchMonstersPage(crFilter, page) { result, back, next, tp, error ->
-            creatures = result
+        viewModel.fetchMonstersPage(crFilter, page) { result, back, next, tp, err ->
+            list = result
             canBack = back
             canNext = next
             totalPages = tp
-            errorMessage = error
+            error = err
             isLoading = false
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Creature List", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(8.dp))
+    LaunchedEffect(Unit) { load() }
+
+    Column(
+        Modifier.fillMaxSize().padding(16.dp)
+    ) {
+        Text("Creatures", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(12.dp))
 
         TextField(
             value = crFilter,
@@ -71,45 +77,47 @@ fun CreaturesScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        Button(onClick = { page = 1; loadPage() }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { page = 1; load() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Filter")
         }
 
         Spacer(Modifier.height(8.dp))
 
         if (isLoading) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(creatures) { creature ->
+            LazyColumn(Modifier.weight(1f)) {
+                items(list) { m ->
                     Text(
-                        "${creature.name} - CR: ${creature.challenge_rating}, HP: ${creature.hit_points}",
+                        text = "${m.name} (CR ${m.challenge_rating})",
                         modifier = Modifier
+                            .fillMaxWidth()
                             .padding(8.dp)
-                            .clickable {
-                                navController.navigate("monsterDetail/${creature.slug}")
-                            }
+                            .clickable { navController.navigate("monsterDetail/${m.slug}") }
                     )
                 }
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Button(onClick = { if (canBack) { page--; loadPage() } }, enabled = canBack) {
+        Spacer(Modifier.height(8.dp))
+
+        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+            Button(onClick = { if (canBack) { page--; load() } }, enabled = canBack) {
                 Text("Back")
             }
-            Text(if (totalPages > 0) "Página $page de $totalPages" else "Página $page")
-            Button(onClick = { if (canNext) { page++; loadPage() } }, enabled = canNext) {
+
+            Text(if (totalPages > 0) "Page $page / $totalPages" else "Page $page")
+
+            Button(onClick = { if (canNext) { page++; load() } }, enabled = canNext) {
                 Text("Next")
             }
         }
 
-        errorMessage?.let {
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
-
-    LaunchedEffect(Unit) { loadPage() }
 }
