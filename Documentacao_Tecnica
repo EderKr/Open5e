@@ -1,7 +1,9 @@
 # Open5e App — Documentação Técnica (Foco no Produto)
 
 ## 1. Visão Geral
-O Open5e App é um cliente móvel para consulta e exploração de conteúdo SRD de RPG (monstros, magias, itens) disponibilizado pela API pública Open5e. Ele fornece experiência fluida de navegação, busca e leitura detalhada, incluindo renderização de texto enriquecido (Markdown simplificado) e interação personalizada via autenticação de usuário (Firebase). O objetivo principal é reduzir fricção na pesquisa durante sessões de jogo, oferecendo acesso rápido e organizado às referências.
+O Open5e App é um cliente móvel para consulta e exploração de conteúdo SRD de RPG (monstros, magias, itens) disponibilizado pela API pública Open5e. 
+Ele fornece experiência fluida de navegação, busca e leitura detalhada, incluindo renderização de texto enriquecido (Markdown simplificado) e interação personalizada via autenticação de usuário (Firebase). 
+O objetivo principal é reduzir fricção na pesquisa durante sessões de jogo, oferecendo acesso rápido e organizado às referências.
 
 ### Objetivos Principais
 - Acesso offline parcial futuro (cache) e rápido a dados essenciais.
@@ -109,7 +111,8 @@ Proposta: estrutura unificada `sealed class UiState<T>` com variantes: `Loading`
 - Futuro: snapshot tests para componentes visuais críticos.
 
 ## 16. Considerações Finais
-O Open5e App já oferece uma base sólida, moderna e bem organizada para consulta do conteúdo SRD da Open5e. A combinação de Jetpack Compose, Retrofit e Firebase proporciona um núcleo confiável para evoluir funcionalidades de forma incremental sem comprometer a experiência do usuário.
+O Open5e App já oferece uma base sólida, moderna e bem organizada para consulta do conteúdo SRD da Open5e. A combinação de Jetpack Compose, 
+Retrofit e Firebase proporciona um núcleo confiável para evoluir funcionalidades de forma incremental sem comprometer a experiência do usuário.
 
 Pontos fortes atuais:
 - UI declarativa com arquitetura clara de estado em ViewModels.
@@ -117,4 +120,5 @@ Pontos fortes atuais:
 - Camada de rede enxuta e extensível para novos endpoints.
 - Fundamentos prontos para personalização do usuário via autenticação.
 
-Em linha com esses pontos, o Open5e App seguirá em evolução contínua: o desenvolvimento não irá parar. Irei priorizar melhorias de usabilidade, busca avançada, favoritos persistidos e cache offline, além de ampliar categorias e acessibilidade. A cada ciclo, o objetivo é fortalecer a confiabilidade, a performance e a experiência do jogador, mantendo o app atual e relevante ao longo do tempo.
+Em linha com esses pontos, o Open5e App seguirá em evolução contínua: o desenvolvimento não irá parar. Irei priorizar melhorias de usabilidade, busca avançada, favoritos persistidos e cache offline, 
+além de ampliar categorias e acessibilidade. A cada ciclo, o objetivo é fortalecer a confiabilidade, a performance e a experiência do jogador, mantendo o app atual e relevante ao longo do tempo.
