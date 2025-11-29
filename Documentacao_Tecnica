@@ -1,0 +1,120 @@
+# Open5e App — Documentação Técnica (Foco no Produto)
+
+## 1. Visão Geral
+O Open5e App é um cliente móvel para consulta e exploração de conteúdo SRD de RPG (monstros, magias, itens) disponibilizado pela API pública Open5e. Ele fornece experiência fluida de navegação, busca e leitura detalhada, incluindo renderização de texto enriquecido (Markdown simplificado) e interação personalizada via autenticação de usuário (Firebase). O objetivo principal é reduzir fricção na pesquisa durante sessões de jogo, oferecendo acesso rápido e organizado às referências.
+
+### Objetivos Principais
+- Acesso offline parcial futuro (cache) e rápido a dados essenciais.
+- Interface moderna e responsiva com Jetpack Compose.
+- Segurança básica de sessão via Firebase Auth.
+
+## 2. Funcionalidades Principais
+- Listagem de magias, monstros e itens com paginação (quando suportado pela API).
+- Tela de detalhes com atributos estruturados (ex: estatísticas de monstros, componentes de magias, raridade de itens).
+- Busca textual (planejada) por nome / tipo / escola / CR.
+- Autenticação (login / cadastro) para desbloquear recursos pessoais (ex: favoritos).
+- Renderização de descrições com formatação (Markdown parcial: negrito, itálico, cabeçalhos, listas básicas).
+- Alternância de categorias através de navegação inferior ou drawer (dependendo de implementação futura).
+
+## 3. Arquitetura Técnica
+A arquitetura atual é pragmática e centrada em camadas simples:
+- UI (Compose) + ViewModels (estado e lógica). 
+- Network layer usando Retrofit (`network/ApiClient.kt`, `Open5eService.kt`).
+- Modelos de dados representacionais (`models/Monster.kt`, `Spell.kt`, `MagicItem.kt`).
+- Firebase para autenticação e armazenamento em tempo real de dados do usuário (ex: favoritos planejados). 
+
+Previsto para evolução:
+- Introdução de Repositórios específicos (ex: `MonsterRepository`, `SpellRepository`).
+- Camada de domínio com casos de uso (`FetchMonsterList`, `ToggleFavorite`).
+- Injeção de dependências via Hilt para escalabilidade e testabilidade.
+
+## 4. Modelos de Dados (Resumo)
+Os modelos principais representam entidades Open5e.
+- `Monster`: atributos de estatísticas (challenge rating, AC, HP, habilidades, ações, etc.).
+- `Spell`: nível, escola, componentes, tempo de conjuração, duração, alcance e descrição.
+- `MagicItem`: nome, tipo, raridade, descrição e possíveis efeitos.
+
+Todos são usados diretamente pela UI; recomendação futura: separar Data Model (API) vs Domain Model para permitir normalização, cache e evolução sem quebrar a UI.
+
+## 5. Navegação e Fluxos
+Principais telas (pasta `ui/`):
+- `HomeScreen`: ponto inicial agregador / atalhos para categorias.
+- `SpellsScreen`, `CreaturesScreen`, `ItemsScreen`: listagens categoriais.
+- `SpellDetailScreen`, `MonsterDetailScreen`, `ItemDetailScreen`: visualização aprofundada.
+- `LoginScreen`, `SignUpScreen`: fluxo de autenticação.
+- `AccountScreen`: dados e preferências do usuário.
+
+Fluxos de usuário típicos:
+1. Usuário abre app → Home → escolhe categoria → lista → detalhe → retorna / salva favorito.
+2. Usuário sem conta → SignUp → redireciona para Home com sessão ativa.
+3. Usuário autenticado → acessa `AccountScreen` para ajustes futuros (tema, preferências).
+
+## 6. Componentes Internos
+- `MarkdownParser` + `TextMarkdown`: convertem conteúdo textual vindo da API para componentes Compose estilizados.
+- Tema (`ui/theme/Theme.kt`, `Color.kt`, `Type.kt`): define paleta e tipografia base, preparado para Material3.
+- ViewModels (`viewmodels/`): agregam lógica de transformação de dados e expõem estado imutável para a UI.
+- `ApiClient` / `Open5eService`: encapsulam construção de Retrofit e definição de endpoints.
+
+## 7. Estratégia de Dados e Sincronização
+Atualmente: busca direta da API no momento da exibição (on-demand). 
+Planejado:
+- Cache em memória + persistência local (Room) para acesso offline básico.
+- Política de atualização baseada em TTL (ex: renovar dados após X horas).
+- Favorecer uso de `Result`/`sealed class` para diferenciar Loading / Success / Error.
+
+## 8. Autenticação
+Firebase Auth provê operações de registro e login (`LoginScreen`, `SignUpScreen`). Sessão ativa permite futuras features (favoritos, histórico). Melhorias previstas:
+- Camada de abstração (`AuthRepository`).
+- Tratamento consistente de erros (ex: usuário já existe) com mapeamento para mensagens amigáveis.
+
+## 9. Renderização de Conteúdo (Markdown)
+`MarkdownParser` realiza parsing simplificado para converter marcações básicas (ex: **negrito**, *itálico*, títulos) em nós Compose. Estratégia futura:
+- Suporte a tabelas (estatísticas compactas).
+- Links internos entre entidades (ex: clicar em condição / efeito).
+- Conversão incremental (stream) para não travar UI em descrições longas.
+
+## 10. Tema e Experiência Visual
+Base em Material3 com possibilidade de expansão para tema dinâmico (Android 12+). Pontos futuros:
+- Alternância tema claro/escuro manual + modo automático.
+- Ajuste de tamanho de fonte para acessibilidade.
+- Paletas adaptativas para diferenciar categorias (ex: magias = roxo, monstros = vermelho).
+
+## 11. Requisitos Não Funcionais
+- Usabilidade rápida (tempo de carregamento inicial baixo).
+- Consistência visual entre categorias.
+- Extensibilidade: fácil adicionar nova categoria (ex: Raças, Classes) reaproveitando padrões.
+- Manutenibilidade: código modular e pronto para DI.
+
+## 12. Segurança
+- Uso de HTTPS na comunicação (Retrofit + OkHttp por padrão).
+- Evitar logs sensíveis (UID, tokens). 
+- Possível futura adoção de Firebase App Check para reduzir abuso.
+
+## 13. Performance
+Estratégias em uso / planejadas:
+- Listas com `LazyColumn` para carga incremental.
+- Separação de estado em ViewModels evita recomposições excessivas.
+- Otimização de parsing Markdown (limitar reconstruções de árvore).
+- Cache local e pré-busca (prefetch) em dispositivos com boa rede.
+
+## 14. Tratamento de Erros
+Proposta: estrutura unificada `sealed class UiState<T>` com variantes: `Loading`, `Success(T)`, `Empty`, `Error(message)`. Benefícios:
+- Padroniza renderização de feedback.
+- Facilita testes unitários de ViewModels.
+
+## 15. Testes (Plano)
+- Unitários: validação de parsing Markdown, transformação de modelos, lógica de paginação.
+- UI: testes de navegação e estados (ex: loading vs error vs conteúdo).
+- Integração: chamadas Retrofit com `MockWebServer`.
+- Futuro: snapshot tests para componentes visuais críticos.
+
+## 16. Considerações Finais
+O Open5e App já oferece uma base sólida, moderna e bem organizada para consulta do conteúdo SRD da Open5e. A combinação de Jetpack Compose, Retrofit e Firebase proporciona um núcleo confiável para evoluir funcionalidades de forma incremental sem comprometer a experiência do usuário.
+
+Pontos fortes atuais:
+- UI declarativa com arquitetura clara de estado em ViewModels.
+- Modelos de dados alinhados às entidades do domínio (magias, monstros, itens).
+- Camada de rede enxuta e extensível para novos endpoints.
+- Fundamentos prontos para personalização do usuário via autenticação.
+
+Em linha com esses pontos, o Open5e App seguirá em evolução contínua: o desenvolvimento não irá parar. Irei priorizar melhorias de usabilidade, busca avançada, favoritos persistidos e cache offline, além de ampliar categorias e acessibilidade. A cada ciclo, o objetivo é fortalecer a confiabilidade, a performance e a experiência do jogador, mantendo o app atual e relevante ao longo do tempo.
