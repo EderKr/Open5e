@@ -80,31 +80,6 @@ Material3 preparado para expansão: tema dinâmico, paletas por categoria, ajust
 | RNF04 | Cache offline com Room | Planejado |
 | RNF05 | Seguir protótipo Figma | Em andamento |
 
-## 🚀 Roadmap (Próximos 3 Ciclos)
-| Ciclo | Foco | Entregas |
-|-------|------|----------|
-| 1 | Fundamentos UX | Favoritos, UiState padronizado, melhorias tema |
-| 2 | Performance & Offline | Cache Room, TTL, busca avançada |
-| 3 | Expansão de Conteúdo | Novas categorias, filtros combinados, links internos |
-
-## 🧪 Testes (Planejado)
-- Unit: parsing Markdown, paginação, transformação de modelos
-- Integração: Retrofit + MockWebServer
-- UI: estados (loading/error/success) e navegação
-
 ## 🔒 Segurança
 - HTTPS por padrão
 - Evitar logs sensíveis (UID/token)
-- Futuro: Firebase App Check
-
-## 💪 Evolução Contínua
-O desenvolvimento não irá parar: cada ciclo prioriza utilidade real na mesa de jogo (acesso rápido, contexto claro, personalização). A base atual suporta crescimento seguro sem refazer camadas críticas.
-
-## 🤝 Contribuição
-Sugestões e PRs são bem-vindos: foco em acessibilidade, internacionalização, performance e novas categorias. Mantenha consistência de estilo Kotlin/Compose.
-
-## 🧾 Licença
-Definir (ex: MIT). Conteúdo SRD via Open5e — incluir crédito conforme termos.
-
----
-Documentação mais detalhada em `docs/DOCUMENTACAO_TECNICA.md`.
