@@ -21,12 +21,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.open5e.viewmodels.AccountViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onSignUp: () -> Unit
+    onSignUp: () -> Unit,
+    accountViewModel: AccountViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -77,6 +80,20 @@ fun LoginScreen(
 
         TextButton(onClick = onSignUp) {
             Text("Don’t have an account? Sign up")
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        TextButton(onClick = {
+            accountViewModel.signInAnonymously { ok, err ->
+                if (ok) {
+                    onLoginSuccess()
+                } else {
+                    errorMessage = err ?: "Anonymous sign-in failed."
+                }
+            }
+        }) {
+            Text("Continue without account")
         }
     }
 }
