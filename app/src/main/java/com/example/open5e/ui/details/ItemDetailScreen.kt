@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -70,14 +69,6 @@ fun ItemDetailScreen(
             item {
                 Text("Description", style = MaterialTheme.typography.titleMedium)
                 TextMarkdown(i.desc ?: "No description available.")
-            }
-            item {
-                Button(
-                    onClick = { viewModel.saveItemOffline(i) },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text("Salvar Offline")
-                }
             }
         }
     }
